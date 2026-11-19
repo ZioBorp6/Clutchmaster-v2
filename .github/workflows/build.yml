@@ -1,0 +1,51 @@
+name: Build ClutchMaster
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compile Fabric Mod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Extract ClutchMaster project
+        run: |
+          unzip -q ClutchMaster-GitHub-Actions.zip -d project
+          ls -la project/ClutchMaster
+
+      - name: Build ClutchMaster
+        working-directory: project/ClutchMaster
+        run: gradle --no-daemon clean build
+
+      - name: Upload compiled mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClutchMaster-build
+          path: |
+            project/ClutchMaster/build/libs/clutchmaster-*.jar
+            !project/ClutchMaster/build/libs/*-sources.jar
+          if-no-files-found: error
+          retention-days: 14
+          
